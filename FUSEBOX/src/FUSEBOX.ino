@@ -126,7 +126,7 @@ void setup() {
 
     Serial.println("!setup_begin");
 
-    // i2c_scanner();
+    i2c_scanner();
 
     if( lcd_Init() 		)	{Serial.println("LCD:     ok");	}
     delay(50);
