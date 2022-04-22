@@ -96,8 +96,6 @@ static unsigned long lastTimestamp_fuse = 0;
 /*==CONSTRUCTOR=============================================================================================*/
 // PCF8574
 PCF8574 relay;
-PCF8574 iFuse;
-PCF8574 LetsFixThis;
 // Keypad
 Keypad_I2C MyKeypad( makeKeymap(KeypadKeys), KeypadRowPins, KeypadColPins, KEYPAD_ROWS, KEYPAD_COLS, KEYPAD_I2C_ADD, PCF8574_MODE);
 // Password
@@ -132,8 +130,6 @@ void setup() {
     delay(50);
     if( relay_Init() 	)	{Serial.println("Relay:   ok");	}
     delay(50);
-    if( input_Init()  ) {Serial.println("Inputs:  ok"); }
-    delay(50);
     if( Keypad_Init() ) {Serial.println("Keypad: ok");	}
 
     delay(50);
@@ -157,22 +153,6 @@ void setup() {
 //==========================================================================================================*/
 
 void loop() {
-
-    if ((millis() - lastTimestamp_fuse) > timespan_fuseCheck ) {
-        fuse_status += fuseCheck();
-
-        // positive opens negative closes
-        if (fuse_status > fuse_hysteris_margin && locked) {
-            open_room_door();
-        } else if (fuse_status < -fuse_hysteris_margin && !locked) {
-            close_room_door();
-        }
-        // prevent overflows
-        if (fuse_status > fuse_hysteris_margin) {fuse_status = fuse_hysteris_margin;}
-        if (fuse_status < -fuse_hysteris_margin) {fuse_status = -fuse_hysteris_margin;}
-
-        lastTimestamp_fuse = millis();
-    }
 
     #ifndef LCD_DISABLE
 
@@ -217,29 +197,6 @@ void close_room_door() {
 //===FUNCTIONS================================================================================================
 //==========================================================================================================*/
 
-/*==FUSES===================================================================================================*/
-int fuseCheck() {
-
-    delay(5);
-    // since the exit is faster with the last fuse which are the removed fuses
-    // simply reverse the search
-    for (int i=FUSE_COUNT-1; i >= 0; i--) {
-        Serial.println("");
-        Serial.print("fuseNo"); Serial.print(i);
-        Serial.print("with result: ");
-        Serial.println(iFuse.digitalRead(inputPinArray[i]));
-        Serial.println("");
-        if (iFuse.digitalRead(inputPinArray[i]) != fuseSolutions[i]) {
-            Serial.print("incorrect fuse installed at slot: ");
-            Serial.print(i);
-            Serial.print("with result: ");
-            Serial.println(iFuse.digitalRead(inputPinArray[i]));
-            return -1;
-        }
-        delay(5);
-    }
-    return 1;
-}
 
 #ifndef LCD_DISABLE
 /*==LCD=====================================================================================================*/
@@ -264,7 +221,6 @@ void LCD_Update() {
 			LCD_keypadscreen();
 		} else if (KeypadCodeCorrect) {
 			LCD_correct();
-            input_Init();
             delay(100);
             relay.digitalWrite(REL_1_PIN, !REL_1_INIT);
             Serial.println( "Fusebox open" );
@@ -403,24 +359,6 @@ void passwordReset() {
 //===INIT=====================================================================================================
 //==========================================================================================================*/
 
-/*==INPUTS==================================================================================================*/
-bool input_Init() {
-    delay(5);
-    LetsFixThis.begin(FUSE_I2C_ADD);
-    for (int i=0; i<=7; i++) {
-        LetsFixThis.pinMode(i, INPUT);
-        LetsFixThis.digitalWrite(i, HIGH);
-    }
-    delay(100);
-    iFuse.begin(FUSE_I2C_ADD);
-    delay(5);
-    for (int i=0; i < FUSE_COUNT; i++) {
-        iFuse.pinMode(inputPinArray[i], INPUT);
-        fuseState[i] = iFuse.digitalRead(inputPinArray[i]);
-        delay(5);
-    }
-  return true;
-}
 
 /*===LCD====================================================================================================*/
 bool lcd_Init() {
@@ -447,13 +385,6 @@ bool lcd_Init() {
 /*===KEYPAD=================================================================================================*/
 bool Keypad_Init() {
 	MyKeypad.addEventListener(keypadEvent);    // Event Listener erstellen
-    delay(10);
-    LetsFixThis.begin(FUSE_I2C_ADD);
-    for (int i=0; i<=7; i++) {
-     LetsFixThis.pinMode(i, INPUT);
-     LetsFixThis.digitalWrite(i, HIGH);
-    }
-    delay(100);
 	MyKeypad.begin( makeKeymap(KeypadKeys) );
 	MyKeypad.setHoldTime(5000);
 	MyKeypad.setDebounceTime(20);
