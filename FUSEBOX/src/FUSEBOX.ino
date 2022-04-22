@@ -95,11 +95,11 @@ static unsigned long lastTimestamp_fuse = 0;
 
 /*==CONSTRUCTOR=============================================================================================*/
 // PCF8574
-Expander_PCF8574 relay;
-Expander_PCF8574 iFuse;
-Expander_PCF8574 LetsFixThis;
+PCF8574 relay;
+PCF8574 iFuse;
+PCF8574 LetsFixThis;
 // Keypad
-Keypad_I2C MyKeypad( makeKeymap(KeypadKeys), KeypadRowPins, KeypadColPins, KEYPAD_ROWS, KEYPAD_COLS, KEYPAD_I2C_ADD, PCF8574);
+Keypad_I2C MyKeypad( makeKeymap(KeypadKeys), KeypadRowPins, KeypadColPins, KEYPAD_ROWS, KEYPAD_COLS, KEYPAD_I2C_ADD, PCF8574_MODE);
 // Password
 Password pass_fusebox = Password(secret_password);   // @Abdullah, please check if this is the right code
 // LCD
