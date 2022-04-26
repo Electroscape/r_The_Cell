@@ -81,17 +81,12 @@ byte  countMiddle = 8;
 byte  keyCount    = countMiddle;
 
 
-// negative is wrong solutions and locked positive is correct solution and open
-static int fuse_status = 0;
 static bool locked = true;
 bool UpdateLCD      = true;
 
 unsigned long lastLCDUpdate = 0;
 const unsigned long UpdateLCDAfterDelay = 6000;        /* Refreshing the LCD periodically */
 
-
-/*==TIMER===================================================================================================*/
-static unsigned long lastTimestamp_fuse = 0;
 
 /*==CONSTRUCTOR=============================================================================================*/
 // PCF8574
@@ -114,17 +109,9 @@ void setup() {
     delay(50);
     Serial.println(); Serial.println("==============FuseBox 20.08.2019=============");
     Serial.println(); Serial.println("===================SETUP=====================");
-    Serial.println("==SV1.3==");
-    Serial.println("==no hystersis protection==");
-    Serial.println("==IGNORE_KEYPADSTATE==");
-    Serial.println(IGNORE_KEYPAD);
+    Serial.println("==SV1.4==");
+    Serial.println("==no Fuses==");
     Serial.println("!header_end");
-
-    Serial.println();
-
-    Serial.println("!setup_begin");
-
-    i2c_scanner();
 
     if( lcd_Init() 		)	{Serial.println("LCD:     ok");	}
     delay(50);
@@ -133,14 +120,11 @@ void setup() {
     if( Keypad_Init() ) {Serial.println("Keypad: ok");	}
 
     delay(50);
-    i2c_scanner();
-    delay(50);
 
     close_room_door();
 
     Serial.println("!setup_end");
 
-    blink_onBoardled(500);
     Serial.println(); Serial.println("===================START====================="); Serial.println();
 #if IGNORE_KEYPAD
     LCD_correct();
@@ -430,6 +414,7 @@ void print_logo_infos(String progTitle) {
 void i2c_scanner() {
     Serial.println (F("I2C scanner:"));
     Serial.println (F("Scanning..."));
+    delay(50);
     byte wire_device_count = 0;
 
     for (byte i = 8; i < 120; i++) {

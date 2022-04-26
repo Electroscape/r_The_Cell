@@ -15,7 +15,6 @@ const unsigned long timespan_fuseCheck = 50;
 #define DEBUG_MODE 					0
 // onBoardLED
 #define ON_BOARD_LED_PIN            13
-#define IGNORE_KEYPAD               0
 // #define LCD_DISABLE     1
 // LED
 // PIN
