@@ -187,8 +187,7 @@ void setup() {
 
     Serial.println("WDT endabled");
     wdt_enable(WDTO_8S);
-
-    // technicall 2 but no need to poll the 2nd 
+    
     Mother.rs485SetSlaveCount(1);
 
     setStageIndex();
