@@ -45,13 +45,14 @@ unsigned long lastKeypadAction = millis();
 
 unsigned long lastOledAction = millis();
 // technically only the 3rd line i will update
-bool oledHasContent = false;
 // freq is unsinged int, durations are unsigned long
 // frequency, ontime, offtime
 unsigned int buzzerFreq[BuzzerMaxStages] = {0};
 unsigned long buzzerOn[BuzzerMaxStages] = {0};
 unsigned long buzzerOff[BuzzerMaxStages] = {0};
 unsigned long buzzerTimeStamp = millis();
+
+unsigned long blockInputUntill = 0;
 
 int buzzerStage = -1;
 
@@ -68,8 +69,8 @@ bool lcdInit() {
 		delay(500);
 		lcd.backlight();
 	}
-
 	printHomescreen();
+    lcd.noBacklight();
     Serial.print(F("done"));
 	return true;
 }
@@ -104,7 +105,6 @@ void setup() {
 
 
 void printHomescreen() {
-    oledHasContent = false;
     lastOledAction = millis();
     lcd.clear();
     lcd.home();
@@ -124,9 +124,9 @@ void loop() {
         Keypad.getKey();
     }
     
-    
+    oledResetCheck();
     keypadResetCheck();
-    buzzerUpdate();
+    // buzzerUpdate();
 
     if (!Brain.slaveRespond()) {
         return;
@@ -218,19 +218,23 @@ bool checkForValid() {
         wdt_reset();
 
         if (cmdNo == KeypadCmds::correct) {
-            setBuzzerStage(0, 1000, 400, 200);
-            setBuzzerStage(1, 1500, 1500, 0);
+            setBuzzerStage(0, 800, 800, 20);
             lcd.setCursor(3,2);
+            blockInputUntill = millis() + 5000;
             lcd.print("Acces Granted");
-            delay(5000);
         } else {
             setBuzzerStage(0, 400, 200, 50);
             setBuzzerStage(1, 400, 200, 50);
             setBuzzerStage(2, 400, 200, 50);
             lcd.setCursor(6,2);
             lcd.print("Invalid");
-            delay(1500);
+            blockInputUntill = millis() + 1000;
         }
+
+        while (millis() < blockInputUntill) {
+            buzzerUpdate();
+        }
+
         printHomescreen();
         return true;
     }
@@ -256,6 +260,7 @@ void keypadEvent(KeypadEvent eKey) {
 
     if (state == PRESSED) {
         lastKeypadAction = millis();
+        lcd.backlight();
     }
 
     switch (state) {
@@ -272,7 +277,6 @@ void keypadEvent(KeypadEvent eKey) {
                     break;
 
                 default:
-                    if (oledHasContent) {return;}
                     passKeypad.append(eKey);
                     if (strlen(passKeypad.guess) >= KEYPAD_CODE_LENGTH_MAX) {
                         checkPassword();
@@ -335,9 +339,9 @@ void keypadResetCheck() {
 
 
 void oledResetCheck() {
-    if (!oledHasContent) {return;}
-    if (millis() - lastOledAction > keypadResetInterval) {
-        printHomescreen();
+    if (millis() - lastOledAction > oledBacklightDuration) {
+        lcd.noBacklight();
+        lastOledAction = millis();
     }
 }
 
