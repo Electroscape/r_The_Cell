@@ -19,7 +19,7 @@ enum relays {
 
 enum relayInits {
     magnet_init = closed,
-    emergencyLight_init = open
+    emergencyLight_init = closed
 };
 
 int relayPinArray[relayAmount] = {
@@ -45,7 +45,7 @@ int stageSum = ~( ~0 << StageCount );
 // could have multiple brains listed here making up a matrix
 // for now its only an Access module mapped here
 int flagMapping[StageCount] {
-    0
+    keypadFlag
 };
 
 char passwords[PasswordAmount][MaxPassLen] = {

@@ -26,7 +26,7 @@
 PCF8574 inputPCF;
 STB_MOTHER Mother;
 
-int stage = unlocked;
+int stage = locked;
 // since stages are single binary bits and we still need to do some indexing
 int stageIndex = 0;
 // doing this so the first time it updates the brains oled without an exta setup line
@@ -68,8 +68,9 @@ bool passwordInterpreter(char* password) {
     Mother.STB_.defaultOled.clear();
     for (int passNo=0; passNo < PasswordAmount; passNo++) {
         if (passwordMap[passNo] & stage) {
-            return true;
-            
+            if ( strncmp(passwords[passNo], password, strlen(passwords[passNo]) ) == 0) {
+                return true;
+            }
         }
     }
     return false;
@@ -90,6 +91,7 @@ void handleResult(char *cmdPtr) {
     if (passwordInterpreter(cmdPtr) && (cmdPtr != NULL)) {
         sprintf(noString, "%d", KeypadCmds::correct);
         strcat(msg, noString);
+        stage = unlocked;
     } else {
         sprintf(noString, "%d", KeypadCmds::wrong);
         strcat(msg, noString);
@@ -144,12 +146,16 @@ void stageActions() {
     wdt_reset();
     switch (stage) {
         case unlocked:
-            Serial.println();
-        break;
-        case locked:
+            Mother.motherRelay.digitalWrite(magnet, open);
+            Mother.motherRelay.digitalWrite(emergencyLight, open);
             wdt_disable();
             delay(15000);
             wdt_enable(WDTO_8S);
+            stage = locked;
+        break;
+        case locked:
+            Mother.motherRelay.digitalWrite(magnet, closed);
+            Mother.motherRelay.digitalWrite(emergencyLight, closed);
         break;
     }
 }

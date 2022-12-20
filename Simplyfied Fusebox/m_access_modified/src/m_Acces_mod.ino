@@ -82,13 +82,14 @@ void setup() {
     Brain.STB_.dbgln("v0.09");
     wdt_enable(WDTO_8S);
 
-    Brain.setSlaveAddr(1);
+    Brain.setSlaveAddr(0);
 
     // Brain.receiveSetup();
     // for ease of development
     Brain.flags = keypadFlag;
     buzzer_init();
     lcdInit();
+    wdt_reset();
 
 
     if (Brain.flags & keypadFlag) {
@@ -103,12 +104,14 @@ void setup() {
 
 
 void printHomescreen() {
+    oledHasContent = false;
+    lastOledAction = millis();
     lcd.clear();
     lcd.home();
     lcd.setCursor(4,0);
     lcd.print("Enter  Code");
     lcd.setCursor(0,3);
-    lcd.print("* - Clear");
+    lcd.print("* Clear / # Confirm");
     lcd.setCursor(6,1);
 }
 
@@ -212,18 +215,23 @@ bool checkForValid() {
         cmdPtr = strtok(NULL, KeywordsList::delimiter.c_str());
         int cmdNo;
         sscanf(cmdPtr, "%d", &cmdNo);
+        wdt_reset();
 
         if (cmdNo == KeypadCmds::correct) {
             setBuzzerStage(0, 1000, 400, 200);
             setBuzzerStage(1, 1500, 1500, 0);
-            STB_OLED::writeToLine(&Brain.STB_.defaultOled, 3, F("valid"), true);
-            // tone(BUZZER_PIN, 1700, 1000);
+            lcd.setCursor(3,2);
+            lcd.print("Acces Granted");
+            delay(5000);
         } else {
-            setBuzzerStage(0, 800, 200, 50);
-            setBuzzerStage(1, 400, 400, 100);
-            setBuzzerStage(2, 400, 600, 200);
-            STB_OLED::writeToLine(&Brain.STB_.defaultOled, 3, F("invalid"), true);
+            setBuzzerStage(0, 400, 200, 50);
+            setBuzzerStage(1, 400, 200, 50);
+            setBuzzerStage(2, 400, 200, 50);
+            lcd.setCursor(6,2);
+            lcd.print("Invalid");
+            delay(1500);
         }
+        printHomescreen();
         return true;
     }
     return false;
@@ -294,6 +302,7 @@ void keypadEvent(KeypadEvent eKey) {
  */
 void checkPassword() {
     if (strlen(passKeypad.guess) < 1) return;
+
     char msg[20] = ""; 
     strcpy(msg, keypadCmd.c_str());
     strcat(msg, KeywordsList::delimiter.c_str());
@@ -302,23 +311,19 @@ void checkPassword() {
     strcat(msg, noString);
     strcat(msg, KeywordsList::delimiter.c_str());
     strcat(msg, passKeypad.guess);
+    Serial.println("test");
+    delay(500);
     passwordReset();
-    printHomescreen();
-    oledHasContent = true;
     lastOledAction = millis();
     Brain.addToBuffer(msg, true);
 }
 
 
-void oledReset() {
-    printHomescreen();
-    oledHasContent = false;
-}
-
 void passwordReset() {
     if (strlen(passKeypad.guess) > 0) {
         passKeypad.reset();
     }
+    printHomescreen();
 }
 
 
