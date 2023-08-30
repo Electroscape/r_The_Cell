@@ -57,7 +57,7 @@ void setStageIndex() {
  * @brief  consider just using softwareReset
 */
 void gameReset() {
-    stage = unlocked;
+    stage = locked;
     for (int relayNo=0; relayNo < relayAmount; relayNo++) {
         Mother.motherRelay.digitalWrite(relayNo, relayInitArray[relayNo]);
     }
@@ -151,10 +151,12 @@ void stageActions() {
             wdt_disable();
             delay(15000);
             wdt_enable(WDTO_8S);
-            stage = locked;
+            
+            //stage = locked;
         break;
         case locked:
             Mother.motherRelay.digitalWrite(magnet, closed);
+            
             Mother.motherRelay.digitalWrite(emergencyLight, closed);
         break;
     }
