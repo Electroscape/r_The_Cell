@@ -70,7 +70,7 @@ bool lcdInit() {
 		lcd.backlight();
 	}
 	printHomescreen();
-    lcd.noBacklight();
+    //lcd.noBacklight();
     Serial.print(F("done"));
 	return true;
 }
@@ -219,6 +219,7 @@ bool checkForValid() {
 
         if (cmdNo == KeypadCmds::correct) {
             setBuzzerStage(0, 800, 800, 20);
+            lcd.clear();
             lcd.setCursor(3,2);
             blockInputUntill = millis() + 5000;
             lcd.print("Acces Granted");
@@ -236,6 +237,7 @@ bool checkForValid() {
         }
 
         printHomescreen();
+        cmdNo = 0;
         return true;
     }
     return false;
@@ -340,7 +342,7 @@ void keypadResetCheck() {
 
 void oledResetCheck() {
     if (millis() - lastOledAction > oledBacklightDuration) {
-        lcd.noBacklight();
+        //lcd.noBacklight();
         lastOledAction = millis();
     }
 }
